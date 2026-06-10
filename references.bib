@@ -1,0 +1,473 @@
+% 基本アルゴリズム・古典
+
+@article{knowlton1965,
+  author = {Kenneth C. Knowlton},
+  title = {A Fast Storage Allocator},
+  journal = {Communications of the ACM},
+  volume = {8},
+  number = {10},
+  pages = {623--624},
+  year = {1965},
+  doi = {10.1145/365628.365655}
+}
+
+@article{robson1971,
+  author = {J. M. Robson},
+  title = {An Estimate of the Store Size Necessary for Dynamic Storage Allocation},
+  journal = {Journal of the ACM},
+  volume = {18},
+  number = {3},
+  pages = {416--423},
+  year = {1971},
+  doi = {10.1145/321650.321658}
+}
+
+@article{shore1975,
+  author = {John E. Shore},
+  title = {On the External Storage Fragmentation Produced by First-Fit and Best-Fit Allocation Strategies},
+  journal = {Communications of the ACM},
+  volume = {18},
+  number = {8},
+  pages = {433--440},
+  year = {1975},
+  doi = {10.1145/360933.360949}
+}
+
+@article{bays1977,
+  author = {Carter Bays},
+  title = {A Comparison of Next-Fit, First-Fit, and Best-Fit},
+  journal = {Communications of the ACM},
+  volume = {20},
+  number = {3},
+  pages = {191--192},
+  year = {1977},
+  doi = {10.1145/359436.359453}
+}
+
+@article{peterson1977,
+  author = {James L. Peterson and Theodore A. Norman},
+  title = {Buddy Systems},
+  journal = {Communications of the ACM},
+  volume = {20},
+  number = {6},
+  pages = {421--431},
+  year = {1977},
+  doi = {10.1145/359605.359626}
+}
+
+@article{robson1977,
+  author = {J. M. Robson},
+  title = {Worst Case Fragmentation of First Fit and Best Fit Storage Allocation Strategies},
+  journal = {The Computer Journal},
+  volume = {20},
+  number = {3},
+  pages = {242--244},
+  year = {1977},
+  doi = {10.1093/comjnl/20.3.242}
+}
+
+@inproceedings{stephenson1983,
+  author = {C. J. Stephenson},
+  title = {Fast Fits: New Methods for Dynamic Storage Allocation},
+  booktitle = {Proceedings of the 9th ACM Symposium on Operating Systems Principles (SOSP '83)},
+  pages = {30--32},
+  year = {1983},
+  doi = {10.1145/800217.806613}
+}
+
+@article{weinstock1988,
+  author = {Charles B. Weinstock and William A. Wulf},
+  title = {Quick Fit: An Efficient Algorithm for Heap Storage Allocation},
+  journal = {ACM SIGPLAN Notices},
+  volume = {23},
+  number = {10},
+  pages = {141--148},
+  year = {1988},
+  doi = {10.1145/51607.51619}
+}
+
+@book{knuth1997,
+  author = {Donald E. Knuth},
+  title = {The Art of Computer Programming, Volume 1: Fundamental Algorithms},
+  edition = {3rd},
+  publisher = {Addison-Wesley},
+  year = {1997}
+}
+
+% サーベイ・断片化研究
+
+@inproceedings{wilson1995,
+  author = {Paul R. Wilson and Mark S. Johnstone and Michael Neely and David Boles},
+  title = {Dynamic Storage Allocation: A Survey and Critical Review},
+  booktitle = {Proceedings of the International Workshop on Memory Management (IWMM '95), LNCS 986},
+  pages = {1--116},
+  year = {1995},
+  doi = {10.1007/3-540-60368-9_19}
+}
+
+@inproceedings{johnstone1998,
+  author = {Mark S. Johnstone and Paul R. Wilson},
+  title = {The Memory Fragmentation Problem: Solved?},
+  booktitle = {Proceedings of the 1st International Symposium on Memory Management (ISMM '98)},
+  pages = {26--36},
+  year = {1998},
+  doi = {10.1145/286860.286864}
+}
+
+@inproceedings{grunwald1993,
+  author = {Dirk Grunwald and Benjamin Zorn and Robert Henderson},
+  title = {Improving the Cache Locality of Memory Allocation},
+  booktitle = {Proceedings of the ACM SIGPLAN Conference on Programming Language Design and Implementation (PLDI '93)},
+  pages = {177--186},
+  year = {1993},
+  doi = {10.1145/155090.155107}
+}
+
+@inproceedings{barrett1993,
+  author = {David A. Barrett and Benjamin G. Zorn},
+  title = {Using Lifetime Predictors to Improve Memory Allocation Performance},
+  booktitle = {Proceedings of the ACM SIGPLAN Conference on Programming Language Design and Implementation (PLDI '93)},
+  pages = {187--196},
+  year = {1993},
+  doi = {10.1145/155090.155108}
+}
+
+@inproceedings{berger2001,
+  author = {Emery D. Berger and Benjamin G. Zorn and Kathryn S. McKinley},
+  title = {Composing High-Performance Memory Allocators},
+  booktitle = {Proceedings of the ACM SIGPLAN Conference on Programming Language Design and Implementation (PLDI 2001)},
+  pages = {114--124},
+  year = {2001},
+  doi = {10.1145/378795.378821}
+}
+
+@inproceedings{berger2002,
+  author = {Emery D. Berger and Benjamin G. Zorn and Kathryn S. McKinley},
+  title = {Reconsidering Custom Memory Allocation},
+  booktitle = {Proceedings of the ACM SIGPLAN Conference on Object-Oriented Programming, Systems, Languages, and Applications (OOPSLA 2002)},
+  pages = {1--12},
+  year = {2002},
+  doi = {10.1145/582419.582421}
+}
+
+% カーネル・スラブ
+
+@inproceedings{bonwick1994,
+  author = {Jeff Bonwick},
+  title = {The Slab Allocator: An Object-Caching Kernel Memory Allocator},
+  booktitle = {Proceedings of the USENIX Summer 1994 Technical Conference},
+  pages = {87--98},
+  year = {1994},
+  url = {https://www.usenix.org/conference/usenix-summer-1994-technical-conference/slab-allocator-object-caching-kernel}
+}
+
+@inproceedings{bonwick2001,
+  author = {Jeff Bonwick and Jonathan Adams},
+  title = {Magazines and Vmem: Extending the Slab Allocator to Many CPUs and Arbitrary Resources},
+  booktitle = {Proceedings of the USENIX Annual Technical Conference},
+  year = {2001},
+  url = {https://www.usenix.org/conference/2001-usenix-annual-technical-conference/magazines-and-vmem-extending-slab-allocator-many}
+}
+
+% マルチスレッド・スケーラビリティ
+
+@inproceedings{berger2000,
+  author = {Emery D. Berger and Kathryn S. McKinley and Robert D. Blumofe and Paul R. Wilson},
+  title = {Hoard: A Scalable Memory Allocator for Multithreaded Applications},
+  booktitle = {Proceedings of the 9th International Conference on Architectural Support for Programming Languages and Operating Systems (ASPLOS-IX)},
+  pages = {117--128},
+  year = {2000},
+  doi = {10.1145/378993.379232}
+}
+
+@inproceedings{michael2004,
+  author = {Maged M. Michael},
+  title = {Scalable Lock-Free Dynamic Memory Allocation},
+  booktitle = {Proceedings of the ACM SIGPLAN Conference on Programming Language Design and Implementation (PLDI 2004)},
+  pages = {35--46},
+  year = {2004},
+  doi = {10.1145/996841.996848}
+}
+
+@inproceedings{schneider2006,
+  author = {Scott Schneider and Christos D. Antonopoulos and Dimitrios S. Nikolopoulos},
+  title = {Scalable Locality-Conscious Multithreaded Memory Allocation},
+  booktitle = {Proceedings of the 5th International Symposium on Memory Management (ISMM 2006)},
+  pages = {84--94},
+  year = {2006},
+  doi = {10.1145/1133956.1133968}
+}
+
+@inproceedings{aigner2015,
+  author = {Martin Aigner and Christoph M. Kirsch and Michael Lippautz and Ana Sokolova},
+  title = {Fast, Multicore-Scalable, Low-Fragmentation Memory Allocation through Large Virtual Memory and Global Data Structures},
+  booktitle = {Proceedings of the ACM SIGPLAN International Conference on Object-Oriented Programming, Systems, Languages, and Applications (OOPSLA 2015)},
+  pages = {451--469},
+  year = {2015},
+  doi = {10.1145/2814270.2814294}
+}
+
+@inproceedings{kuszmaul2015,
+  author = {Bradley C. Kuszmaul},
+  title = {SuperMalloc: A Super Fast Multithreaded Malloc for 64-bit Machines},
+  booktitle = {Proceedings of the 2015 International Symposium on Memory Management (ISMM 2015)},
+  pages = {41--55},
+  year = {2015},
+  doi = {10.1145/2754169.2754178}
+}
+
+% リアルタイム
+
+@inproceedings{masmano2004,
+  author = {Miguel Masmano and Ismael Ripoll and Alfons Crespo and Jorge Real},
+  title = {TLSF: A New Dynamic Memory Allocator for Real-Time Systems},
+  booktitle = {Proceedings of the 16th Euromicro Conference on Real-Time Systems (ECRTS 2004)},
+  pages = {79--88},
+  year = {2004},
+  doi = {10.1109/EMRTS.2004.1311009}
+}
+
+% セキュリティ
+
+@inproceedings{berger2006,
+  author = {Emery D. Berger and Benjamin G. Zorn},
+  title = {DieHard: Probabilistic Memory Safety for Unsafe Languages},
+  booktitle = {Proceedings of the ACM SIGPLAN Conference on Programming Language Design and Implementation (PLDI 2006)},
+  pages = {158--168},
+  year = {2006},
+  doi = {10.1145/1133981.1134000}
+}
+
+@inproceedings{novark2010,
+  author = {Gene Novark and Emery D. Berger},
+  title = {DieHarder: Securing the Heap},
+  booktitle = {Proceedings of the 17th ACM Conference on Computer and Communications Security (CCS 2010)},
+  pages = {573--584},
+  year = {2010},
+  doi = {10.1145/1866307.1866371}
+}
+
+@inproceedings{silvestro2017,
+  author = {Sam Silvestro and Hongyu Liu and Corey Crosser and Zhiqiang Lin and Tongping Liu},
+  title = {FreeGuard: A Faster Secure Heap Allocator},
+  booktitle = {Proceedings of the ACM SIGSAC Conference on Computer and Communications Security (CCS 2017)},
+  pages = {2389--2403},
+  year = {2017},
+  doi = {10.1145/3133956.3133957}
+}
+
+@inproceedings{silvestro2018,
+  author = {Sam Silvestro and Hongyu Liu and Tianyi Liu and Zhiqiang Lin and Tongping Liu},
+  title = {Guarder: A Tunable Secure Allocator},
+  booktitle = {Proceedings of the 27th USENIX Security Symposium},
+  year = {2018},
+  url = {https://www.usenix.org/conference/usenixsecurity18/presentation/silvestro}
+}
+
+@inproceedings{ainsworth2020,
+  author = {Sam Ainsworth and Timothy M. Jones},
+  title = {MarkUs: Drop-in Use-After-Free Prevention for Low-Level Languages},
+  booktitle = {Proceedings of the IEEE Symposium on Security and Privacy (S\&P 2020)},
+  year = {2020},
+  doi = {10.1109/SP40000.2020.00058}
+}
+
+@inproceedings{filardo2020,
+  author = {Nathaniel Wesley Filardo and Brett F. Gutstein and Jonathan Woodruff and others},
+  title = {Cornucopia: Temporal Safety for CHERI Heaps},
+  booktitle = {Proceedings of the IEEE Symposium on Security and Privacy (S\&P 2020)},
+  year = {2020},
+  doi = {10.1109/SP40000.2020.00098}
+}
+
+@inproceedings{wickman2021,
+  author = {Brian Wickman and Hong Hu and Insu Yun and Daehee Jang and JungWon Lim and Sanidhya Kashyap and Taesoo Kim},
+  title = {Preventing Use-After-Free Attacks with Fast Forward Allocation},
+  booktitle = {Proceedings of the 30th USENIX Security Symposium},
+  year = {2021},
+  url = {https://www.usenix.org/conference/usenixsecurity21/presentation/wickman}
+}
+
+@misc{serebryany2023,
+  author = {Kostya Serebryany and others},
+  title = {GWP-ASan: Sampling-Based Detection of Memory-Safety Bugs in Production},
+  year = {2023},
+  note = {arXiv:2311.09394},
+  url = {https://arxiv.org/abs/2311.09394}
+}
+
+% ツール
+
+@inproceedings{nethercote2007,
+  author = {Nicholas Nethercote and Julian Seward},
+  title = {Valgrind: A Framework for Heavyweight Dynamic Binary Instrumentation},
+  booktitle = {Proceedings of the ACM SIGPLAN Conference on Programming Language Design and Implementation (PLDI 2007)},
+  pages = {89--100},
+  year = {2007},
+  doi = {10.1145/1250734.1250746}
+}
+
+@inproceedings{serebryany2012,
+  author = {Konstantin Serebryany and Derek Bruening and Alexander Potapenko and Dmitriy Vyukov},
+  title = {AddressSanitizer: A Fast Address Sanity Checker},
+  booktitle = {Proceedings of the USENIX Annual Technical Conference},
+  pages = {309--318},
+  year = {2012},
+  url = {https://www.usenix.org/conference/atc12/technical-sessions/presentation/serebryany}
+}
+
+% 局所性・ハードウェア・大規模運用
+
+@misc{drepper2007,
+  author = {Ulrich Drepper},
+  title = {What Every Programmer Should Know About Memory},
+  year = {2007},
+  url = {https://www.akkadia.org/drepper/cpumemory.pdf}
+}
+
+@inproceedings{kanev2017,
+  author = {Svilen Kanev and Sam Likun Xi and Gu-Yeon Wei and David Brooks},
+  title = {Mallacc: Accelerating Memory Allocation},
+  booktitle = {Proceedings of the 22nd International Conference on Architectural Support for Programming Languages and Operating Systems (ASPLOS 2017)},
+  pages = {33--45},
+  year = {2017},
+  doi = {10.1145/3037697.3037736}
+}
+
+@inproceedings{hunter2021,
+  author = {A. H. Hunter and Chris Kennelly and Paul Turner and Darryl Gove and Tipp Moseley and Parthasarathy Ranganathan},
+  title = {Beyond malloc Efficiency to Fleet Efficiency: A Hugepage-Aware Memory Allocator},
+  booktitle = {Proceedings of the 15th USENIX Symposium on Operating Systems Design and Implementation (OSDI 2021)},
+  pages = {257--273},
+  year = {2021},
+  url = {https://www.usenix.org/conference/osdi21/presentation/hunter}
+}
+
+@inproceedings{zhou2024,
+  author = {Zhuangzhuang Zhou and Vaibhav Gogte and Nilay Vaish and Chris Kennelly and Patrick Xia and Svilen Kanev and Tipp Moseley and Christina Delimitrou and Parthasarathy Ranganathan},
+  title = {Characterizing a Memory Allocator at Warehouse Scale},
+  booktitle = {Proceedings of the 29th ACM International Conference on Architectural Support for Programming Languages and Operating Systems (ASPLOS 2024), Volume 3},
+  year = {2024},
+  doi = {10.1145/3620666.3651350}
+}
+
+% 機械学習・最新研究
+
+@inproceedings{maas2020,
+  author = {Martin Maas and David G. Andersen and Michael Isard and Mohammad Mahdi Javanmard and Kathryn S. McKinley and Colin Raffel},
+  title = {Learning-based Memory Allocation for C++ Server Workloads},
+  booktitle = {Proceedings of the 25th International Conference on Architectural Support for Programming Languages and Operating Systems (ASPLOS 2020)},
+  pages = {541--556},
+  year = {2020},
+  doi = {10.1145/3373376.3378525}
+}
+
+@inproceedings{powers2019,
+  author = {Bobby Powers and David Tench and Emery D. Berger and Andrew McGregor},
+  title = {Mesh: Compacting Memory Management for C/C++ Applications},
+  booktitle = {Proceedings of the 40th ACM SIGPLAN Conference on Programming Language Design and Implementation (PLDI 2019)},
+  pages = {333--346},
+  year = {2019},
+  doi = {10.1145/3314221.3314582}
+}
+
+@misc{li2025exgen,
+  author = {Ruihao Li and Lizy K. John and Neeraja J. Yadwadkar},
+  title = {Old is Gold: Optimizing Single-threaded Applications with Exgen-Malloc},
+  year = {2025},
+  note = {arXiv:2510.10219},
+  url = {https://arxiv.org/abs/2510.10219}
+}
+
+@misc{li2025speed,
+  author = {Ruihao Li and Qinzhe Wu and Krishna Kavi and Gayatri Mehta and Jonathan C. Beard and Neeraja J. Yadwadkar and Lizy K. John},
+  title = {SpeedMalloc: Improving Multi-threaded Applications via a Lightweight Core for Memory Allocation},
+  year = {2025},
+  note = {arXiv:2508.20253},
+  url = {https://arxiv.org/abs/2508.20253}
+}
+
+% 実際のライブラリ
+
+@misc{lea2000,
+  author = {Doug Lea},
+  title = {A Memory Allocator},
+  year = {2000},
+  url = {https://gee.cs.oswego.edu/dl/html/malloc.html}
+}
+
+@misc{evans2006,
+  author = {Jason Evans},
+  title = {A Scalable Concurrent malloc(3) Implementation for FreeBSD},
+  year = {2006},
+  note = {BSDCan 2006},
+  url = {https://people.freebsd.org/~jasone/jemalloc/bsdcan2006/jemalloc.pdf}
+}
+
+@misc{ghemawat2007,
+  author = {Sanjay Ghemawat and Paul Menage},
+  title = {TCMalloc: Thread-Caching Malloc},
+  year = {2007},
+  note = {gperftools documentation},
+  url = {https://goog-perftools.sourceforge.net/doc/tcmalloc.html}
+}
+
+@misc{tcmalloc2024,
+  title = {TCMalloc Design},
+  year = {2024},
+  note = {Google TCMalloc documentation},
+  url = {https://google.github.io/tcmalloc/design.html}
+}
+
+@inproceedings{leijen2019,
+  author = {Daan Leijen and Benjamin Zorn and Leonardo de Moura},
+  title = {Mimalloc: Free List Sharding in Action},
+  booktitle = {Proceedings of the 17th Asian Symposium on Programming Languages and Systems (APLAS 2019), LNCS 11893},
+  pages = {244--265},
+  year = {2019},
+  doi = {10.1007/978-3-030-34175-6_13}
+}
+
+@inproceedings{lietar2019,
+  author = {Paul Liétar and Theodore Butler and Sylvan Clebsch and Sophia Drossopoulou and Juliana Franco and Matthew J. Parkinson and Alex Shamis and Christoph M. Wintersteiger and David Chisnall},
+  title = {snmalloc: A Message Passing Allocator},
+  booktitle = {Proceedings of the 2019 ACM SIGPLAN International Symposium on Memory Management (ISMM 2019)},
+  pages = {122--135},
+  year = {2019},
+  doi = {10.1145/3315573.3329980}
+}
+
+@misc{glibcwiki,
+  title = {Malloc Internals: Overview of Malloc},
+  note = {glibc wiki},
+  year = {2024},
+  url = {https://sourceware.org/glibc/wiki/MallocInternals}
+}
+
+@misc{felker2020,
+  author = {Rich Felker},
+  title = {musl 1.2.1 Release Notes (Next-Generation malloc Implementation)},
+  year = {2020},
+  url = {https://musl.libc.org/releases.html}
+}
+
+@misc{llvmscudo,
+  title = {Scudo Hardened Allocator},
+  note = {LLVM Project documentation},
+  year = {2024},
+  url = {https://llvm.org/docs/ScudoHardenedAllocator.html}
+}
+
+@misc{micay2024,
+  author = {Daniel Micay},
+  title = {hardened\_malloc: Hardened Allocator Designed for Modern Systems},
+  year = {2024},
+  url = {https://github.com/GrapheneOS/hardened_malloc}
+}
+
+@misc{partitionalloc,
+  title = {PartitionAlloc Design},
+  note = {Chromium documentation},
+  year = {2024},
+  url = {https://chromium.googlesource.com/chromium/src/+/main/base/allocator/partition_allocator/PartitionAlloc.md}
+}

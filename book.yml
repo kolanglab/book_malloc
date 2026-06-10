@@ -1,0 +1,38 @@
+title: "malloc 入門"
+description: "C の malloc/free の裏側を、API と OS インターフェースから、フリーリスト・サイズクラス・バディ・スラブといった基本アルゴリズム、断片化・マルチスレッド・セキュリティ・最新研究、そして dlmalloc/glibc/jemalloc/TCMalloc/mimalloc など実際のライブラリの設計まで、研究論文を引きながら一望する入門書"
+author: "ligarb AI"
+language: "ja"
+ai_generated: true
+bibliography: references.bib
+chapters:
+  - cover: cover.md
+  - introduction.md
+  - part: part-basics.md
+    chapters:
+      - api-basics.md
+      - os-interface.md
+      - inside-malloc.md
+  - part: part-algorithms.md
+    chapters:
+      - free-list.md
+      - segregated-lists.md
+      - buddy-slab.md
+  - part: part-advanced.md
+    chapters:
+      - fragmentation.md
+      - multithread.md
+      - locality.md
+      - security.md
+      - realtime.md
+      - research-frontiers.md
+  - part: part-libraries.md
+    chapters:
+      - dlmalloc.md
+      - glibc-malloc.md
+      - jemalloc.md
+      - tcmalloc.md
+      - mimalloc.md
+      - other-allocators.md
+  - appendix:
+    - tools.md
+    - glossary.md
