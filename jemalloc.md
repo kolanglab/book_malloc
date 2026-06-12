@@ -55,6 +55,16 @@ jemalloc も[アリーナ](#index:アリーナ)を使うが、glibc とは割り
 > - **管理単位**: 固定 chunk（既定 4 MiB）から可変の
 >   **extent（エクステント）** へ移行。後述の low-address reuse や decay は
 >   この extent 単位の話だ。
+> - **なぜ変わったか**: これらは別々の整理ではなく、ひとつの再設計の帰結だ[@jemalloc500]。
+>   4.x の huge は**全スレッド共有の赤黒木＋単一 mutex**で管理され、ここが
+>   スケーラビリティの競合点だった。しかもこの global mutex のせいで chunk を
+>   大きく（4 MiB）保つ圧力がかかっていた（本来 256 KiB 程度でも足りる）。
+>   管理を**アリーナごとの extent** に移すと global な huge 経路が消え、
+>   large と huge を 1 区分に畳めた。固定・自然境界の chunk は**仮想メモリの
+>   外部断片化**を生み huge page とも相性が悪かったが、可変長 extent は
+>   メタデータを別所に置けるためこれを抑える。同時に、比率指定の
+>   `lg_dirty_mult` を廃して dirty→muzzy→clean の二段 decay（秒→ミリ秒解像度）に
+>   置き換え、バックグラウンドスレッドでの purge を可能にした。
 > - **実機の値**: man ページ（jemalloc.net）か
 >   `mallctl` の `arenas.nbins` / `arenas.bin.<i>.size` /
 >   `arenas.lextent.<i>.size` で確認できる。
