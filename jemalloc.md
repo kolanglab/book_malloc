@@ -37,6 +37,33 @@ jemalloc も[アリーナ](#index:アリーナ)を使うが、glibc とは割り
 - `16384`（16 KiB）以上 — スラブではなくページ単位の **large**
   （16 KiB, 20 KiB, …）に切り替わる。
 
+実際に丸めてみると、この「約 20%」がそのまま現れる。`malloc_usable_size` は要求サイズが切り上げられた先のクラスサイズを返すので、両者の差が内部断片化だ（jemalloc 5.3.0、64 ビット・16 バイト quantum）。
+
+```c
+extern size_t malloc_usable_size(void *);
+size_t reqs[] = {1, 9, 100, 129, 200, 257, 1000, 1025};
+for (size_t i = 0; i < sizeof(reqs)/sizeof(reqs[0]); i++) {
+  void *p = malloc(reqs[i]);
+  size_t u = malloc_usable_size(p);
+  printf("request=%5zu -> usable=%5zu  (内部断片化 %4.1f%%)\n",
+         reqs[i], u, 100.0 * (u - reqs[i]) / u);
+  free(p);
+}
+```
+
+```text
+request=    1 -> usable=    8  (内部断片化 87.5%)
+request=    9 -> usable=   16  (内部断片化 43.8%)
+request=  100 -> usable=  112  (内部断片化 10.7%)
+request=  129 -> usable=  160  (内部断片化 19.4%)
+request=  200 -> usable=  224  (内部断片化 10.7%)
+request=  257 -> usable=  320  (内部断片化 19.7%)
+request= 1000 -> usable= 1024  (内部断片化  2.3%)
+request= 1025 -> usable= 1280  (内部断片化 19.9%)
+```
+
+小さいクラスでは比率が跳ね上がるが（`1`→`8` で 87.5%）、これは絶対量が小さいので実害は少ない。問題は中〜大サイズで、`257`→`320`・`1025`→`1280` のように**区間の入口を 1 バイト超えた要求**が最悪ケースになり、いずれも約 20% に収まる。4 分割の刻みがこの上限を保証している。
+
 これらの small クラスは、サイズクラスごとの**スラブ**（[スラブの章](buddy-slab.md)で
 学んだ、固定サイズを敷き詰めた連続領域。jemalloc はこれを slab と呼ぶ）で
 管理され、ビットマップで空きスロットを追う。ヘッダをオブジェクトごとに持たず、
@@ -55,7 +82,7 @@ jemalloc も[アリーナ](#index:アリーナ)を使うが、glibc とは割り
 > - **管理単位**: 固定 chunk（既定 4 MiB）から可変の
 >   **extent（エクステント）** へ移行。後述の low-address reuse や decay は
 >   この extent 単位の話だ。
-> - **なぜ変わったか**: これらは別々の整理ではなく、ひとつの再設計の帰結だ[@jemalloc500]。
+> - **なぜ変わったか**: これらは別々の整理ではなく、ひとつの再設計の帰結だ[](#cite:jemalloc500)。
 >   4.x の huge は**全スレッド共有の赤黒木＋単一 mutex**で管理され、ここが
 >   スケーラビリティの競合点だった。しかもこの global mutex のせいで chunk を
 >   大きく（4 MiB）保つ圧力がかかっていた（本来 256 KiB 程度でも足りる）。
@@ -91,12 +118,62 @@ jemalloc は「空いてから時間が経つほど返す確率を上げる」
 「`free` してもしばらくは RSS が減らないが、放っておくと減る」
 という jemalloc 特有の挙動は、この decay の表れだ。
 
+この `madvise` は `strace` で直接見える。8 KiB を 5000 個確保・解放するだけのプログラムを、decay 即時（`dirty_decay_ms:0`）と既定とで比べる（秒数は環境により変わる）。
+
+```console
+$ MALLOC_CONF=dirty_decay_ms:0,muzzy_decay_ms:0 \
+    strace -f -e trace=madvise -c ./prog
+% time     seconds  usecs/call     calls    errors syscall
+------ ----------- ----------- --------- --------- --------
+100.00    0.015563           3      4990           madvise
+
+$ strace -f -e trace=madvise -c ./prog   # 既定（10秒猶予）
+  0.00    0.000000           0         2           madvise
+```
+
+即時返却では `free` のたびにページを返すので madvise が約 5000 回（ほぼ全部 `MADV_DONTNEED`）も飛ぶのに対し、既定ではプロセス実行中は 2 回しか出ない——猶予のあいだ抱えているからだ。decay を攻めると RSS は減るが、この**システムコールと再フォルトのコスト**を CPU で払うことになる。`dirty_decay_ms` のトレードオフはここに表れる。
+
+これは実測すると一目瞭然だ。4 KiB を 2 万個確保してから全部 `free` し、`/proc/self/statm` の RSS と jemalloc の統計（`stats.active` = 使用中、`stats.resident` = OS から見て常駐）を比べる（jemalloc 5.3.0。値は環境により変わる）。
+
+```text
+=== 既定 (dirty_decay_ms=10秒) ===
+確保直後: RSS=87744KB  active=80116KB  resident=87268KB
+free直後: RSS=87816KB  active=  196KB  resident=87268KB
+
+=== MALLOC_CONF=dirty_decay_ms:0 (即時返却) ===
+確保直後: RSS=87652KB  active=80116KB  resident=87268KB
+free直後: RSS= 7796KB  active=  196KB  resident= 7348KB
+```
+
+既定では `free` 直後に `active` は 80 MB → 0.2 MB へ落ちるのに、**RSS は 87 MB のまま**動かない。空きページを decay の猶予（既定 10 秒）のあいだ抱えているからだ。`dirty_decay_ms:0` にすると同じ `free` で RSS が即座に 8 MB まで落ちる。「`free` したのに RSS が減らない」と驚いたときは、まずこの decay を疑えばよい。
+
 ## 観測とチューニング — MALLOC_CONF
 
 jemalloc の大きな魅力が、**圧倒的な観測可能性**である。
 `malloc_stats_print()` を呼ぶと、アリーナごと・サイズクラスごとの
 確保量・断片化・decay の状況が事細かに出力される。
 本番サーバのメモリ挙動をこれで日常的に監視できる。
+
+実際の出力の一部を見てみよう。Ruby を `LD_PRELOAD` で jemalloc に差し替え、`MALLOC_CONF=stats_print:true`（終了時に統計を吐く）を付けて起動する。
+
+```console
+$ MALLOC_CONF=stats_print:true \
+    LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libjemalloc.so.2 ruby app.rb
+```
+
+冒頭の実行時オプションでまず構成が分かる（`narenas:64`・`dirty_decay_ms:10000` の固定アリーナと decay 既定値）。続く `bins:` 表が圧巻で、**サイズクラスごと**に確保量・スラブ数・充填率まで並ぶ（列を抜粋）。次は処理系の起動時点での `bins:` 表だ。
+
+```text
+  size ind   allocated   nmalloc   curregs  curslabs  regs   util
+     8   0        1600       200       200        1   512  0.390
+    16   1        6400       400       400        2   256  0.781
+    32   2       16000       500       500        4   128  0.976
+    64   4        4096        64        64        1    64  1
+   160   9       16000       100       100        1   128  0.781
+   256  12        4096        16        16        1    16  1
+```
+
+`util`（スラブ充填率）は、そのサイズクラスのスラブがどれだけ詰まっているかを示す。1 に近いほど無駄がなく、低ければスカスカのスラブが RSS を食っているサインだ。本番では `nmalloc`/`ndalloc` の差で増え続けるクラスを探し、リークや肥大の当たりをつける。これが章で言う「圧倒的な観測可能性」の実体である。
 
 設定は環境変数 `MALLOC_CONF`（またはビルト時設定）で行う。
 代表的な項目を挙げる。
@@ -145,10 +222,10 @@ Rust は 2018 年頃まで jemalloc を既定アロケータにしていた
 jemalloc や後述の mimalloc を選ぶのは普通のことだ。
 
 > [!NOTE]
-> jemalloc は 2024 年に Meta での専任メンテナンス体制が縮小し、
-> 開発の主軸が移行する局面を迎えている。とはいえ FreeBSD 標準として、
-> また膨大な既存システムで現役であり続けており、
-> 設計から学べることは何も減っていない。
+> jemalloc の upstream 開発は 2025 年にいったん終了し（リポジトリがアーカイブされた）、
+> 開発の主軸が Meta 内のフォークへ移った。ところが 2026 年 3 月、Meta は jemalloc への
+> 再投資を表明してアーカイブを解除し、開発を再開している。いずれにせよ FreeBSD 標準として、
+> また膨大な既存システムで現役であり続けており、設計から学べることは何も減っていない。
 > 「固定アリーナ・細かいサイズクラス・decay・深い観測可能性」という
 > jemalloc の語彙は、アロケータを語るうえでの共通言語になっている。
 
