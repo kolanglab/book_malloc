@@ -36,3 +36,10 @@ chapters:
   - appendix:
     - tools.md
     - glossary.md
+
+repository: "https://github.com/kolanglab/book_malloc"
+
+site_url: "https://kolanglab.github.io/book_malloc/"
+
+github_review:
+  enabled: true
