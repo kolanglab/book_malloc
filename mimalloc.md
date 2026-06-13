@@ -42,6 +42,42 @@ mimalloc はこれを**さらに細かく刻む**。
 分岐のごく少ない数命令になる。Leijen らはこの速いパスの短さを
 論文で強調している[](#cite:leijen2019)。
 
+言葉だけだと分かりにくいので、ページを「16B ブロック 4 個ぶん」に縮めて動きを追ってみよう。確保は `free` から pop、解放は `local_free` に push、そして `free` が尽きたときだけ `local_free` を `free` に付け替える——という最小モデルを書いて走らせる。
+
+```c
+block_t *page_alloc(page_t *pg){
+  if (pg->free == NULL) {           // 遅いパス: ここだけ
+    pg->free = pg->local_free;      // local_free を free に付け替え
+    pg->local_free = NULL;
+  }
+  block_t *b = pg->free;            // 速いパス: 先頭を pop するだけ
+  pg->free = b->next;
+  pg->used++;
+  return b;
+}
+void page_free(page_t *pg, block_t *b){
+  b->next = pg->local_free;         // 解放は local_free へ積むだけ
+  pg->local_free = b;
+  pg->used--;
+}
+```
+
+各操作のあとに 3 つの長さを出力すると、こうなる。
+
+```
+初期(満杯のfree)  free=4 local_free=0 used=0
+alloc a                free=3 local_free=0 used=1
+alloc b                free=2 local_free=0 used=2
+free a (->local_free)  free=2 local_free=1 used=1
+free b (->local_free)  free=2 local_free=2 used=0
+alloc c                free=1 local_free=2 used=1
+alloc d                free=0 local_free=2 used=2
+  [collect] free <- local_free
+alloc e                free=1 local_free=0 used=3
+```
+
+注目すべきは `free a`/`free b` の行だ。解放しても `free` の長さは 2 のまま変わらず、回収物は `local_free` にだけ積まれていく。`alloc d` で `free=0` になり、次の `alloc e` で初めて `local_free`（長さ 2）が `free` に付け替えられる。つまり「解放のたびの後始末」が確保パスから消え、`free` を pop し続けるホットパスにはこの付け替え以外の分岐が現れない。
+
 ## 遠隔解放を分離する
 
 (3) の `thread_free` は、[マルチスレッドの章](multithread.md)で見た
@@ -59,6 +95,20 @@ mimalloc の回答である。
 「速いパスにはアトミック命令すら置かない」という徹底ぶりが、
 mimalloc の性能の源泉だ。
 
+> [!NOTE]
+> 「数命令」は誇張ではない。`free` が非空という前提での pop 本体を gcc 13.3.0 で `-O2` コンパイルすると、本体はこれだけになる（x86-64, Intel 記法）。
+>
+> ```asm
+> mov  rax, QWORD PTR [rdi]      ; b = pg->free
+> test rax, rax                  ; 空なら遅いパスへ
+> je   .L1
+> mov  rdx, QWORD PTR [rax]      ; b->next
+> add  QWORD PTR 16[rdi], 1      ; pg->used++
+> mov  QWORD PTR [rdi], rdx      ; pg->free = b->next
+> ```
+>
+> ロード 2 回・ストア 2 回・分岐 1 回。アトミック命令（`lock` 接頭辞）は 1 つもない。遠隔解放だけが `thread_free` への `lock` 付き push を払い、所有スレッドの確保・解放はこの素の命令列で済む。
+
 ## セキュアモードと encoded free list
 
 mimalloc は[セキュリティ](security.md)も意識した設計を持つ。
@@ -70,7 +120,29 @@ next ポインタを鍵で変換して保存するので、
 glibc の safe-linking（[glibc malloc の章](glibc-malloc.md)）と
 同じ発想だが、mimalloc は設計当初から組み込んでいる。
 
-さらに `MIMALLOC_SECURE` を上げると、
+符号化の中身は単純だ。mimalloc 本体（`internal.h`）の `mi_ptr_encode`/`mi_ptr_decode` をそのまま抜き出すと、ページ固有の 2 つの鍵 `keys[0]`/`keys[1]` で「XOR → ローテート → 加算」するだけである。
+
+```c
+// next を保存するとき
+stored = mi_rotl((uintptr_t)next ^ keys[1], keys[0]) + keys[0];
+// next を読むとき
+next   = (void*)(mi_rotr(stored - keys[0], keys[0]) ^ keys[1]);
+```
+
+これを実際に走らせると、正規の next は往復して元に戻り、攻撃者がオーバーフローで `0x4141...`（"AAAA..."）を書き込んでも、復号結果はまったく別のアドレスに散らばる。
+
+```
+next(plain)   = 0x5612a0b34080
+stored(enc)   = 0xa42866aef942d274
+decoded       = 0x5612a0b34080   (== next ? yes)
+
+-- overflow で next を 0x4141414141414141 に上書き --
+decoded       = 0x749bcb2569e8d540
+```
+
+攻撃者は `keys` を知らない限り、復号後に狙ったアドレスへ着地させられない。生のアドレスをそのまま next に書けば確保器を誘導できた glibc の tcache poisoning（[セキュリティの章](security.md)）が、この一手でほぼ封じられる。
+
+さらにビルド時に `MI_SECURE`（secure レベル 0〜4）を上げると、
 ガードページの挿入、確保位置のランダム化、
 解放チャンクの検査などが加わり、[セキュリティの章](security.md)で見た
 DieHarder 系の防御に近づく。速度とのトレードオフを
