@@ -72,8 +72,8 @@
   「明示的フリーリスト」が基本。→[フリーリストの章](free-list.md)
 
 **bin**
-: dlmalloc/glibc のサイズ別フリーリスト群。fast / small / large / unsorted の
-  4 種がある。→[dlmalloc の章](dlmalloc.md)
+: glibc（および dlmalloc 2.7 系）のサイズ別フリーリスト群。fast / small / large /
+  unsorted の 4 種がある（dlmalloc 2.8 系は fast/unsorted を廃し treebin を導入）。→[dlmalloc の章](dlmalloc.md)
 
 **アラインメント（alignment）**
 : 戻り値が満たすべきアドレス境界。x86-64/glibc では 16 バイト。
