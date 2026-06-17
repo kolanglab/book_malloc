@@ -1,4 +1,6 @@
 title: "malloc 入門"
+head: |
+  <script data-goatcounter="https://ko1.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 description: "C の malloc/free の裏側を、API と OS インターフェースから、フリーリスト・サイズクラス・バディ・スラブといった基本アルゴリズム、断片化・マルチスレッド・セキュリティ・最新研究、そして dlmalloc/glibc/jemalloc/TCMalloc/mimalloc など実際のライブラリの設計まで、研究論文を引きながら一望する入門書"
 author: "ligarb AI"
 language: "ja"
