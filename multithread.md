@@ -159,7 +159,7 @@ glibc malloc はスレッドが増えると**アリーナ**（独立したヒー
 ## スレッドキャッシュ
 
 現代の主要アロケータに共通する解が、
-[スレッドキャッシュ](#index:スレッドキャッシュ)（thread cache）である。
+[スレッドキャッシュ](#index:スレッドキャッシュ)（thread cache、略して tcache）である。
 [スラブの章](buddy-slab.md)で見た Bonwick の magazine 層
 [](#cite:bonwick2001) の直系で、構造はこうだ。
 
