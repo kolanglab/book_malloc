@@ -96,18 +96,25 @@ mimalloc の回答である。
 mimalloc の性能の源泉だ。
 
 > [!NOTE]
-> 「数命令」は誇張ではない。`free` が非空という前提での pop 本体を gcc 13.3.0 で `-O2` コンパイルすると、本体はこれだけになる（x86-64, Intel 記法）。
+> 「数命令」が本当か、確保のホットパス（前節の `page_alloc`）を実際に
+> コンパイルして見てみよう。`page_alloc` は `free` リストの先頭を 1 つ pop
+> するだけの確保関数だった。
+> `pg->free != NULL`（リストが非空で、遅いパスの付け替えが要らない）という
+> 前提でその本体を gcc 13.3.0 で `-O2` コンパイルすると、これだけになる
+> （x86-64, Intel 記法）。各命令は `page_alloc` の対応する 1 行にそのまま対応する。
 >
 > ```asm
-> mov  rax, QWORD PTR [rdi]      ; b = pg->free
-> test rax, rax                  ; 空なら遅いパスへ
+> mov  rax, QWORD PTR [rdi]      ; block_t *b = pg->free;   (rdi = pg)
+> test rax, rax                  ; if (pg->free == NULL) … 空なら遅いパス .L1 へ
 > je   .L1
-> mov  rdx, QWORD PTR [rax]      ; b->next
-> add  QWORD PTR 16[rdi], 1      ; pg->used++
-> mov  QWORD PTR [rdi], rdx      ; pg->free = b->next
+> mov  rdx, QWORD PTR [rax]      ; rdx = b->next
+> add  QWORD PTR 16[rdi], 1      ; pg->used++              (used はオフセット 16)
+> mov  QWORD PTR [rdi], rdx      ; pg->free = b->next       (= rdx)
 > ```
 >
-> ロード 2 回・ストア 2 回・分岐 1 回。アトミック命令（`lock` 接頭辞）は 1 つもない。遠隔解放だけが `thread_free` への `lock` 付き push を払い、所有スレッドの確保・解放はこの素の命令列で済む。
+> ロード 2 回・ストア 2 回・分岐 1 回。`return b`（`rax`）まで含めても数命令だ。
+> アトミック命令（`lock` 接頭辞）は 1 つもない。遠隔解放だけが `thread_free` への
+> `lock` 付き push を払い、所有スレッドの確保・解放はこの素の命令列で済む。
 
 ## ポインタを符号化するセキュアモード
 
