@@ -57,18 +57,64 @@ Hoard[](#cite:berger2000) は、この問題への明確な回答を設計目標
 どれくらい遅くなるのか、4 スレッドが別々の `long` カウンタを加算するだけのコードで測ってみよう。前者は 4 個の `long` を同じ配列に詰めて隣接（＝同じ 64 バイトライン）に置き、後者は各カウンタを `_Alignas(64)` とパディングで別ラインに分ける。論理的な仕事量は同じである。
 
 ```c
-typedef struct { _Alignas(64) volatile long v; char pad[64-sizeof(long)]; } padded_t;
+/* falsesharing.c */
+#define _GNU_SOURCE
+#include <stdio.h>
+#include <pthread.h>
+#include <time.h>
+
+#define NTHREAD 4
+#define NITER   200000000L  /* 各スレッド 2 億回 */
+
+typedef struct { _Alignas(64) volatile long v; char pad[64 - sizeof(long)]; } padded_t;
 static volatile long shared[16];  /* 隣接 → 偽共有あり */
 static padded_t      sep[16];     /* 64B 分離 → 偽共有なし */
-/* 各スレッド idx=0..3: 2 億回 shared[idx]++ または sep[idx].v++ */
+static int use_sep;
+
+static void *worker(void *arg) {
+    long idx = (long)arg;
+    if (use_sep) for (long i = 0; i < NITER; i++) sep[idx].v++;
+    else         for (long i = 0; i < NITER; i++) shared[idx]++;
+    return NULL;
+}
+
+static double run(int sep_mode) {
+    use_sep = sep_mode;
+    struct timespec t0, t1;
+    pthread_t th[NTHREAD];
+    clock_gettime(CLOCK_MONOTONIC, &t0);
+    for (long i = 0; i < NTHREAD; i++) pthread_create(&th[i], NULL, worker, (void *)i);
+    for (int i = 0; i < NTHREAD; i++) pthread_join(th[i], NULL);
+    clock_gettime(CLOCK_MONOTONIC, &t1);
+    return (t1.tv_sec - t0.tv_sec) + (t1.tv_nsec - t0.tv_nsec) / 1e9;
+}
+
+int main(void) {
+    printf("偽共有あり（同一ライン上の隣接 long）: %.3f 秒\n", run(0));
+    printf("分離あり（64B アライン+パディング）  : %.3f 秒\n", run(1));
+    return 0;
+}
 ```
 
+ビルドして実行する（`volatile` なので最適化でループは消えない）。
+
 ```
-偽共有あり（同一ライン上の隣接 long）: 6.991 秒
-分離あり（64B アライン+パディング）  : 0.060 秒
+$ gcc -O2 -pthread falsesharing.c -o falsesharing
+$ ./falsesharing
+偽共有あり（同一ライン上の隣接 long）: 9.339 秒
+分離あり（64B アライン+パディング）  : 0.106 秒
 ```
 
-約 120 倍。1 バイトも共有していないのに、同じラインに同居しただけでキャッシュ整合性プロトコルがラインを奪い合い、これだけの差が出る（このマシンはライン 64 バイト。`getconf LEVEL1_DCACHE_LINESIZE` で確認できる。数値は環境により大きく変わる）。前述のとおり、隣り合う `malloc` がたまたま同じラインに乗れば、ユーザは何も悪くないのにこの差を踏まされる。だから明示的な分離が効く。
+おおよそ 2 桁倍の差だ。1 バイトも共有していないのに、同じラインに同居しただけでキャッシュ整合性プロトコルがラインを奪い合い、これだけの差が出る。前述のとおり、隣り合う `malloc` がたまたま同じラインに乗れば、ユーザは何も悪くないのにこの差を踏まされる。だから明示的な分離が効く。
+
+> [!NOTE]
+> 上の値は次の実機で測った 1 例である。AMD Ryzen 9 5900HX（16 スレッド）、
+> Linux 6.8、gcc 13.3.0、キャッシュライン 64 バイト
+> （`getconf LEVEL1_DCACHE_LINESIZE` で確認）。
+> 偽共有側は実行ごとに 9〜10 秒、分離側は 0.06〜0.14 秒とばらつき、
+> 比は数十〜100 倍超まで揺れる。倍率の正確さに意味はなく、
+> 「2 桁倍のオーダで効く」という点が本質だ。コア数・CPU・コンパイラ次第で
+> 数値は大きく変わるので、手元で実行して確かめてほしい。
 
 ## blowup というメモリ爆発
 
